@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史年表 - Victoria Collection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Crimson+Text:wght@400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #C9A959;
+            --primary-dark: #2C1810;
+            --secondary-wine: #722F37;
+            --cream: #FDF6E3;
+            --ivory: #FFFFF0;
+            --deep-blue: #1A365D;
+            --forest-green: #2D4A3E;
+            --rich-purple: #4A2C5A;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background: linear-gradient(135deg, #2C1810 0%, #3D2317 50%, #4A2C2A 100%);
+            min-height: 100vh;
+            padding: 30px;
+            color: #2C1810;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .header::before,
+        .header::after {
+            content: '❧';
+            font-size: 2em;
+            color: var(--primary-gold);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .header::before { left: 15%; }
+        .header::after { right: 15%; content: '❦'; }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3em;
+            color: var(--primary-gold);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #D4AF37;
+            font-style: italic;
+            font-family: 'Great Vibes', cursive;
+        }
+
+        .filter-bar {
+            background: linear-gradient(135deg, var(--cream) 0%, var(--ivory) 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            border: 3px solid var(--primary-gold);
+            position: relative;
+        }
+
+        .filter-bar::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid var(--primary-gold);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .view-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .view-btn {
+            padding: 10px 25px;
+            border: 2px solid var(--primary-gold);
+            background: var(--cream);
+            color: var(--primary-dark);
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .view-btn:hover {
+            background: var(--primary-gold);
+            color: var(--cream);
+        }
+
+        .view-btn.active {
+            background: var(--primary-gold);
+            color: var(--cream);
+            box-shadow: 0 4px 8px rgba(201, 169, 89, 0.3);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+        }
+
+        .filter-item select,
+        .filter-item input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #D4AF37;
+            border-radius: 4px;
+            font-size: 15px;
+            font-family: 'Crimson Text', serif;
+            background: var(--ivory);
+            color: var(--primary-dark);
+            transition: all 0.3s;
+        }
+
+        .filter-item select:focus,
+        .filter-item input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.2);
+        }
+
+        .timeline {
+            display: grid;
+            gap: 25px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .timeline.view-large {
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        }
+
+        .timeline.view-small {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+
+        .timeline.view-list {
+            grid-template-columns: 1fr;
+        }
+
+        .card {
+            background: linear-gradient(135deg, var(--cream) 0%, var(--ivory) 100%);
+            border-radius: 6px;
+            padding: 25px;
+            box-shadow: 
+                0 6px 12px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 2px solid var(--primary-gold);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 12px 24px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-gold), #D4AF37);
+        }
+
+        .card.period-史前时期::before { background: linear-gradient(180deg, var(--secondary-wine), #8B3A3A); }
+        .card.period-远古文明::before { background: linear-gradient(180deg, var(--deep-blue), #2A4A7A); }
+        .card.period-古代史::before { background: linear-gradient(180deg, var(--forest-green), #3D5A4E); }
+        .card.period-中世纪前::before { background: linear-gradient(180deg, #8B4513, #A0522D); }
+        .card.period-中世纪::before { background: linear-gradient(180deg, var(--rich-purple), #5A3C6A); }
+        .card.period-近现代::before { background: linear-gradient(180deg, #1A3A5C, #2A4A6C); }
+        .card.period-当代::before { background: linear-gradient(180deg, #2C5A2C, #3C6A3C); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .years {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: linear-gradient(135deg, #FFF8DC, #FFFACD);
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--primary-gold);
+            letter-spacing: 1px;
+        }
+
+        .period-badge {
+            background: linear-gradient(135deg, var(--primary-gold), #D4AF37);
+            color: var(--primary-dark);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            font-family: 'Playfair Display', serif;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card.period-史前时期 .period-badge { background: linear-gradient(135deg, var(--secondary-wine), #8B3A3A); color: white; }
+        .card.period-远古文明 .period-badge { background: linear-gradient(135deg, var(--deep-blue), #2A4A7A); color: white; }
+        .card.period-古代史 .period-badge { background: linear-gradient(135deg, var(--forest-green), #3D5A4E); color: white; }
+        .card.period-中世纪前 .period-badge { background: linear-gradient(135deg, #8B4513, #A0522D); color: white; }
+        .card.period-中世纪 .period-badge { background: linear-gradient(135deg, var(--rich-purple), #5A3C6A); color: white; }
+        .card.period-近现代 .period-badge { background: linear-gradient(135deg, #1A3A5C, #2A4A6C); color: white; }
+        .card.period-当代 .period-badge { background: linear-gradient(135deg, #2C5A2C, #3C6A3C); color: white; }
+
+        .person-event {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            line-height: 1.3;
+        }
+
+        .original-name {
+            font-style: italic;
+            color: #6B4423;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: #5A3A2A;
+        }
+
+        .info-row span {
+            color: #3D2317;
+            font-weight: 600;
+        }
+
+        .works {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid var(--primary-gold);
+            font-size: 0.95em;
+            color: #5A3A2A;
+            font-style: italic;
+        }
+
+        .personal-note {
+            margin-top: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, #FFF8DC, #FFFACD);
+            border-left: 4px solid var(--primary-gold);
+            border-radius: 4px;
+            font-size: 0.95em;
+            color: var(--primary-dark);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .add-note-hint {
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #8B7355;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 24, 16, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--cream) 0%, var(--ivory) 100%);
+            padding: 40px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 
+                0 12px 32px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 3px solid var(--primary-gold);
+        }
+
+        .modal h2 {
+            margin-bottom: 25px;
+            color: var(--primary-dark);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8em;
+            text-align: center;
+        }
+
+        .modal textarea {
+            width: 100%;
+            height: 180px;
+            padding: 15px;
+            border: 2px solid #D4AF37;
+            border-radius: 4px;
+            font-family: 'Crimson Text', serif;
+            font-size: 15px;
+            resize: vertical;
+            margin-bottom: 20px;
+            background: var(--ivory);
+            color: var(--primary-dark);
+        }
+
+        .modal textarea:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 89, 0.2);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: 2px solid var(--primary-gold);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: 'Playfair Display', serif;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gold);
+            color: var(--cream);
+        }
+
+        .btn-primary:hover {
+            background: #B8944D;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(201, 169, 89, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--ivory);
+            color: var(--primary-dark);
+        }
+
+        .btn-secondary:hover {
+            background: #F0E6D3;
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--cream) 0%, var(--ivory) 100%);
+            padding: 25px;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 
+                0 6px 12px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 2px solid var(--primary-gold);
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-gold);
+        }
+
+        .stat-label {
+            margin-top: 10px;
+            color: var(--primary-dark);
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        /* 列表视图特殊样式 */
+        .timeline.view-list .card {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .timeline.view-list .card::before {
+            width: 4px;
+        }
+
+        .timeline.view-list .card-header {
+            min-width: 200px;
+            margin-bottom: 0;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeline.view-list .card-body {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .header::before,
+            .header::after {
+                display: none;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .timeline.view-large,
+            .timeline.view-small {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline.view-list .card {
+                flex-direction: column;
+            }
+        }
+
+        /* 装饰性边框 */
+        .ornament {
+            text-align: center;
+            color: var(--primary-gold);
+            font-size: 1.5em;
+            margin: 10px 0;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Victoria Timeline</h1>
+        <p>Chronicles of Human Civilization</p>
+    </div>
+
+    <div class="filter-bar">
+        <div class="view-controls">
+            <button class="view-btn active" onclick="changeView('large')">📜 大卡片</button>
+            <button class="view-btn" onclick="changeView('small')">📋 小卡片</button>
+            <button class="view-btn" onclick="changeView('list')">📑 列表</button>
+        </div>
+        
+        <div class="filter-group">
+            <div class="filter-item">
+                <label>时期 Period</label>
+                <select id="periodFilter" onchange="filterTimeline()">
+                    <option value="all">全部 All Periods</option>
+                    <option value="史前时期">史前时期 Prehistoric</option>
+                    <option value="远古文明">远古文明 Ancient Civilization</option>
+                    <option value="古代史">古代史 Ancient History</option>
+                    <option value="中世纪前">中世纪前 Early Medieval</option>
+                    <option value="中世纪">中世纪 Medieval</option>
+                    <option value="近现代">近现代 Early Modern</option>
+                    <option value="当代">当代 Contemporary</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>领域 Field</label>
+                <select id="fieldFilter" onchange="filterTimeline()">
+                    <option value="all">全部 All Fields</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>搜索 Search</label>
+                <input type="text" id="searchInput" placeholder="搜索人物、事件..." oninput="filterTimeline()">
+            </div>
+        </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="ornament">❦ ❧ ❦</div>
+
+    <div class="timeline view-large" id="timeline"></div>
+
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <h2>📝 Personal Notes</h2>
+            <textarea id="noteText" placeholder="在此记录你的想法、见解或关联信息..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal()">取消 Cancel</button>
+                <button class="btn btn-primary" onclick="saveNote()">保存 Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timelineData = [];
+        let currentCardId = null;
+        let currentView = 'large';
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        // 切换视图
+        function changeView(view) {
+            currentView = view;
+            const timeline = document.getElementById('timeline');
+            
+            // 移除所有视图类
+            timeline.classList.remove('view-large', 'view-small', 'view-list');
+            timeline.classList.add(`view-${view}`);
+            
+            // 更新按钮状态
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 重新渲染
+            filterTimeline();
+        }
+
+        // 加载数据
+        async function loadData() {
+            try {
+                const response = await fetch('年表数据_最终版.csv');
+                const csvText = await response.text();
+                timelineData = parseCSV(csvText);
+                
+                populateFieldFilter();
+                updateStats();
+                filterTimeline();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('timeline').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--primary-gold);">
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 2em; margin-bottom: 15px;">⚠️ 数据加载失败</h3>
+                        <p style="font-size: 1.2em;">请确保年表数据_最终版.csv 文件在同一目录下</p>
+                        <p style="font-size: 1em; margin-top: 10px; font-style: italic;">Data Load Failed</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 解析CSV
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = parseCSVLine(lines[i]);
+                const obj = {};
+                
+                headers.forEach((header, index) => {
+                    obj[header] = values[index] || '';
+                });
+                
+                obj.id = i;
+                obj.personalNote = localStorage.getItem(`note_${obj.id}`) || '';
+                
+                data.push(obj);
+            }
+            
+            return data;
+        }
+
+        // 解析CSV行(处理引号内的逗号)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        // 填充领域筛选
+        function populateFieldFilter() {
+            const fields = [...new Set(timelineData.map(item => item['领域']).filter(f => f))];
+            const select = document.getElementById('fieldFilter');
+            
+            fields.forEach(field => {
+                const option = document.createElement('option');
+                option.value = field;
+                option.textContent = field;
+                select.appendChild(option);
+            });
+        }
+
+        // 更新统计
+        function updateStats() {
+            const stats = {
+                total: timelineData.length,
+                periods: {},
+                fields: {}
+            };
+            
+            timelineData.forEach(item => {
+                const period = item['时期'];
+                const field = item['领域'];
+                
+                if (period) stats.periods[period] = (stats.periods[period] || 0) + 1;
+                if (field) stats.fields[field] = (stats.fields[field] || 0) + 1;
+            });
+            
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">总记录数 Total</div>
+                </div>
+            `;
+            
+            document.getElementById('stats').innerHTML = statsHtml;
+        }
+
+        // 筛选
+        function filterTimeline() {
+            const periodFilter = document.getElementById('periodFilter').value;
+            const fieldFilter = document.getElementById('fieldFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = timelineData.filter(item => {
+                const matchPeriod = periodFilter === 'all' || item['时期'] === periodFilter;
+                const matchField = fieldFilter === 'all' || item['领域'] === fieldFilter;
+                const matchSearch = searchTerm === '' || 
+                    item['人物或事件']?.toLowerCase().includes(searchTerm) ||
+                    item['外文原名']?.toLowerCase().includes(searchTerm) ||
+                    item['文明或国家']?.toLowerCase().includes(searchTerm) ||
+                    item['朝代或时期']?.toLowerCase().includes(searchTerm) ||
+                    item['代表作品']?.toLowerCase().includes(searchTerm);
+                
+                return matchPeriod && matchField && matchSearch;
+            });
+            
+            renderTimeline(filtered);
+        }
+
+        // 渲染时间线
+        function renderTimeline(data) {
+            const container = document.getElementById('timeline');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--primary-gold);">
+                        <div style="font-size: 3em; margin-bottom: 20px;">🔍</div>
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 2em; margin-bottom: 15px;">未找到匹配记录</h3>
+                        <p style="font-size: 1.2em; font-style: italic;">No Records Found</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = data.map(item => createCard(item)).join('');
+        }
+
+        // 创建卡片
+        function createCard(item) {
+            const startYear = formatYear(item['起始年']);
+            const endYear = item['终止年'] ? formatYear(item['终止年']) : '';
+            const years = endYear ? `${startYear} - ${endYear}` : startYear;
+            
+            const originalName = item['外文原名'] ? `<div class="original-name">${item['外文原名']}</div>` : '';
+            const periodClass = item['时期'] ? `period-${item['时期']}` : '';
+            
+            const civilization = item['文明或国家'] ? `<div class="info-row"><span>🌍 ${item['文明或国家']}</span></div>` : '';
+            const dynasty = item['朝代或时期'] ? `<div class="info-row"><span>🏛️ ${item['朝代或时期']}</span></div>` : '';
+            const region = item['地区'] ? `<div class="info-row"><span>📍 ${item['地区']}</span></div>` : '';
+            const city = item['城市'] ? `<div class="info-row"><span>🏙️ ${item['城市']}</span></div>` : '';
+            const field = item['领域'] ? `<div class="info-row"><span>📚 ${item['领域']}</span></div>` : '';
+            
+            const works = item['代表作品'] ? `<div class="works">📖 ${item['代表作品']}</div>` : '';
+            
+            const noteHtml = item.personalNote ? `<div class="personal-note">📝 ${item.personalNote}</div>` : '';
+            const noteHint = `<div class="add-note-hint">💡 点击添加笔记 Click to add note</div>`;
+            
+            const periodBadge = item['时期'] ? `<span class="period-badge">${item['时期']}</span>` : '';
+            
+            if (currentView === 'list') {
+                // 列表视图
+                return `
+                    <div class="card ${periodClass}" onclick="openNoteModal(${item.id})">
+                        <div class="card-header">
+                            <div class="years">${years}</div>
+                            ${periodBadge}
+                        </div>
+                        <div class="card-body">
+                            <div class="person-event">${item['人物或事件'] || '事件'}</div>
+                            ${originalName}
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                                ${civilization}
+                                ${dynasty}
+                                ${region}
+                                ${city}
+                                ${field}
+                            </div>
+                            ${works}
+                            ${noteHtml}
+                            ${noteHint}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 卡片视图
+                return `
+                    <div class="card ${periodClass}" onclick="openNoteModal(${item.id})">
+                        <div class="card-header">
+                            <div class="years">${years}</div>
+                            ${periodBadge}
+                        </div>
+                        <div class="person-event">${item['人物或事件'] || '事件'}</div>
+                        ${originalName}
+                        ${civilization}
+                        ${dynasty}
+                        ${region}
+                        ${city}
+                        ${field}
+                        ${works}
+                        ${noteHtml}
+                        ${noteHint}
+                    </div>
+                `;
+            }
+        }
+
+        // 格式化年份(转为整数)
+        function formatYear(year) {
+            if (!year) return '';
+            
+            const num = parseFloat(year);
+            if (isNaN(num)) return year;
+            
+            // 史前时期使用科学计数法
+            if (Math.abs(num) >= 1000000) {
+                return num.toExponential(0);
+            }
+            
+            // 转为整数
+            return Math.round(num).toString();
+        }
+
+        // 打开笔记弹窗
+        function openNoteModal(id) {
+            currentCardId = id;
+            const note = localStorage.getItem(`note_${id}`) || '';
+            document.getElementById('noteText').value = note;
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('noteModal').classList.remove('active');
+            currentCardId = null;
+        }
+
+        // 保存笔记
+        function saveNote() {
+            const note = document.getElementById('noteText').value.trim();
+            localStorage.setItem(`note_${currentCardId}`, note);
+            closeModal();
+            loadData();
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('noteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
