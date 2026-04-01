@@ -744,7 +744,23 @@
         function createCard(item) {
             const startYear = formatYear(item['起始年']);
             const endYear = item['终止年'] ? formatYear(item['终止年']) : '';
-            const years = endYear ? `${startYear} - ${endYear}` : startYear;
+            
+            // 优化年份显示：相同世纪或时期可以简化
+            let years;
+            if (endYear) {
+                // 如果起始和结束都是公元前，且相差不大
+                const startNum = parseFloat(item['起始年']);
+                const endNum = parseFloat(item['终止年']);
+                if (!isNaN(startNum) && !isNaN(endNum) && startNum < 0 && endNum < 0) {
+                    const startAbs = Math.round(Math.abs(startNum));
+                    const endAbs = Math.round(Math.abs(endNum));
+                    years = `公元前${startAbs}-${endAbs}年`;
+                } else {
+                    years = `${startYear} - ${endYear}`;
+                }
+            } else {
+                years = startYear;
+            }
             
             const originalName = item['外文原名'] ? `<div class="original-name">${item['外文原名']}</div>` : '';
             const periodClass = item['时期'] ? `period-${item['时期']}` : '';
@@ -809,20 +825,37 @@
             }
         }
 
-        // 格式化年份(转为整数)
+        // 格式化年份(美化显示)
         function formatYear(year) {
             if (!year) return '';
             
             const num = parseFloat(year);
             if (isNaN(num)) return year;
             
-            // 史前时期使用科学计数法
-            if (Math.abs(num) >= 1000000) {
-                return num.toExponential(0);
+            const absNum = Math.abs(num);
+            const rounded = Math.round(absNum);
+            
+            // 史前时期 - 使用易读格式
+            if (absNum >= 1000000000) {
+                const billions = (rounded / 1000000000).toFixed(1);
+                return `${billions}亿年前`;
+            }
+            if (absNum >= 1000000) {
+                const millions = (rounded / 1000000).toFixed(1);
+                return `${millions}百万年前`;
+            }
+            if (absNum >= 10000) {
+                const tenThousands = (rounded / 10000).toFixed(1);
+                return `${tenThousands}万年前`;
             }
             
-            // 转为整数
-            return Math.round(num).toString();
+            // 公元前
+            if (num < 0) {
+                return `公元前${rounded}年`;
+            }
+            
+            // 公元后
+            return `公元${rounded}年`;
         }
 
         // 打开笔记弹窗
